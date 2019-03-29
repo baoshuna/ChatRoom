@@ -1,0 +1,125 @@
+﻿
+@{
+    ViewBag.title = "SignaIR聊天窗口";
+}
+
+<h2>基于SignalR的聊天室Demo</h2>
+<strong id="yourName" style="color:coral"></strong>
+<div class="container">
+    <input type="text" id="message" />
+    <input type="button" id="sendmessage" value="发送" />
+    <input type="button" id="getHistory" value="历史记录">
+    <input type="hidden" id="displayname" />
+    <ul id="messageBox"></ul>
+</div>
+<div id="historyDiv">
+    <strong>------ 我是分隔符 ------</strong><br/>
+    <strong style="color:chocolate">历史记录</strong>
+    <ul id="historyMsg"></ul>
+</div>
+@section scripts
+{
+    <script src="~/Scripts/jquery.signalR-2.3.0.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <script>
+        $(function () {
+            $("#historyDiv").hide();
+            //引用自动生成的集线器代理
+            var chat = $.connection.chatHub;
+            //定义服务器调用的客户端sendMessage来显示新消息
+            chat.client.sendMessage = function (name, message) {
+                //向页面添加消息
+                $("#messageBox").append('<li name="TT"><strong style="color:green">' + name + '</strong>:' + message + '     <label style="color:chartreuse">' + showTime() + '</label></li>');
+            }
+            console.log($.hubConnection().createHubProxy("chatHub"), '这是Proxy')
+            console.log(chat, '这是chat')
+            //新成员欢迎
+            chat.client.welcome = function (name) {
+                $("#messageBox").append('<li><strong style="color:red">系统广播:</strong>欢迎<strong style="color:green">' + name + '</strong>进入聊天室     <label style="color:chartreuse">' + showTime() + '</label></li>');
+            }
+            chat.client.welcomeName = function (name) {
+                $("#yourName").append('您好,' + name);
+            }
+            $("#displayname").val(prompt('欢迎来到聊天室,输入你的昵称:', ''));
+
+            //设置焦点到输入框
+            $('#message').focus();
+            $.connection.hub.logging = true;
+            chat.logging = true;
+
+            $.connection.hub.qs = { 'myQs': 'brave' };
+            //开始连接服务器
+            $.connection.hub.start().done(function () {
+                //alert("transport:" + $.connection.hub.transport.name);查看当前传输方式
+                if ($("#displayname").val() != null && $("#displayname").val() != "") {
+                    chat.server.joinGroup($("#displayname").val());
+                }
+                else {
+                    alert("为了您的聊天体验,请刷新输入姓名重试");
+                }
+
+                $('#sendmessage').click(function () {
+                    //调用服务器端集线器的Send方法
+                    chat.server.sendMsg($('#displayname').val(), $('#message').val());
+                    //调用redis存储历史信息
+                    var data = { name: $('#displayname').val(), message: $('#message').val()};
+                    $.ajax({
+                        type: "post",
+                        url: '@Url.Action("UpdateHistoryMessage","Home")',
+                        data: data
+                    });
+                    //清空输入框信息并获取焦点
+                    $("#message").val('').focus();
+                });
+            })
+        });
+        //为显示的消息进行html编码
+        function htmlEncode(value) {
+            var encodeValue = $('<div/>').text(value).html();
+            return encodeValue;
+        }
+
+        document.onkeydown = function (e) {
+            if (e.keyCode == 13) {
+                $("#sendmessage").click();
+            }
+        }
+        function showTime() {
+            var week = new Array('星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日');
+            var now = new Date();
+            var year = now.getFullYear();
+            var month = now.getMonth() + 1;
+            var date = now.getDate();
+            var day = now.getDay();
+            var hour = now.getHours();
+            var minutes = now.getMinutes();
+            var second = now.getSeconds();
+            month < 10 ? month = '0' + month : month;
+            hour < 10 ? hour = '0' + hour : hour;
+            minutes < 10 ? minutes = '0' + minutes : minutes;
+            second < 10 ? second = '0' + second : second;
+            var now_time = '(' + year + '-' + month + '-' + date + ' ' + hour + ':' + minutes + ':' + '' + second + ' ' + week[day - 1] + ')';
+            return now_time;
+        } 
+
+        //获取历史记录
+        $("#getHistory").click(function () {
+            $("#historyDiv").show();
+            $.ajax({
+                type: "get",
+                url: '@Url.Action("GetHistory", "Home")',
+                success: function (resp) {
+                    if (resp.length > 0) {
+                        $("#historyMsg li").remove();
+                        for (var i = 0; i < resp.length; i++) {
+                            $("#historyMsg").append('<li name="hMsg"><strong style="color:green">' + resp[i].Name + '</strong>:' + resp[i].Message + '     <label style="color:chartreuse">(' + resp[i].MsgTime + ')</label></li>');
+                        }
+                    }
+                },
+                error: function () {
+                    alert("请求失败！");
+                }
+            });
+        });
+    </script>
+}

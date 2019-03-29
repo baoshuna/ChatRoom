@@ -1,0 +1,39 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <script src="~/Scripts/jquery-3.3.1.min.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.3.0.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <title>Index</title>
+</head>
+<body>
+    <div> 
+        <input type="text" id="txtMsg"/>
+        <input type="button" value="发送" id="btnSend"/>
+    </div>
+    <div>
+        <ul id="msgDiv"></ul>
+    </div>
+    <script>
+        var name = prompt("输入你的昵称:", "");
+        var myChat = $.connection.myChatHub;
+        myChat.client.sendMsg = function (name, message) {
+            $("#msgDiv").append('<li>昵称:' + name + ' 消息:' + message + '</li>');
+        }
+
+        $.connection.hub.start().done(function () {
+            //alert("当前传输方式为:" + $.connection.hub.transport.name);
+            $("#btnSend").click(function () {
+                var txtMsg = $("#txtMsg").val();
+                myChat.server.sendMessage(name, txtMsg);
+            });
+        });
+    </script>
+</body>
+</html>

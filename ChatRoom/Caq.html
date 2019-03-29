@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <script src="Scripts/jquery-3.3.1.min.js"></script>
+    <title></title>
+</head>
+<body>
+    总数：<input type="text" id="zong" /><br />
+    一:<input type="text" id="one" />结果：<input type="text" id="r1" /><br />
+    二:<input type="text" id="two" />结果：<input type="text" id="r2" /><br />
+    三:<input type="text" id="three" />结果：<input type="text" id="r3" /><br />
+    四:<input type="text" id="four" />结果：<input type="text" id="r4" /><br />
+    五:<input type="text" id="five" />结果：<input type="text" id="r5" /><br />
+    <input type="button" id="caq" value="计算"/>
+    <input type="button" id="qc" value="清除"/>
+
+    <h2>--- 分隔符 ---</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <td>1</td>
+                <td>2</td>
+            </tr>
+        </thead>
+        <tbody id="tb">
+            <tr><td>222</td><td>222</td></tr>
+            <tr><td>2222</td><td>2322</td></tr>
+        </tbody>
+    </table>
+    <input type="button" id="qc2" value="清除" />
+    <script>
+        $("#caq").click(function () {
+            var sum = $("#zong").val();
+            var one = $("#one").val();
+            var two = $("#two").val();
+            var three = $("#three").val();
+            var four = $("#four").val();
+            var five = $("#five").val();
+            $("#r1").val(toPercent(one / sum));
+            $("#r2").val(toPercent(two / sum));
+            $("#r3").val(toPercent(three / sum));
+            $("#r4").val(toPercent(four / sum));
+            $("#r5").val(toPercent(five / sum));
+        });
+
+        function toPercent(point) {
+            var str = Number(point * 100).toFixed(2);
+            str += "%";
+            return str;
+        }
+
+        $("#qc").click(function () {
+            window.location.reload();
+        });
+
+        $("#qc2").click(function () {
+            $("#tb tr").remove();
+        });
+    </script>
+</body>
+</html>

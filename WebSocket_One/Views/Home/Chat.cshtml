@@ -1,0 +1,28 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <script src="~/Scripts/jquery-3.3.1.min.js"></script>
+    <title>Chat</title>
+</head>
+<body>
+    <div> 
+        <input type="text" id="txt1"/>
+        <input type="button" id="btn1" value="发送"/>
+    </div>
+    <script>
+        $("#btn1").click(function () {
+            var host = window.location.hostname;
+            var port = window.location.port;
+            var ip = new WebSocket('ws://' + host + ":" + port + "/Home/Handlder?User=" + $("#txt1").val());
+            alert(JSON.stringify(ip));
+        });
+    </script>
+</body>
+</html>
